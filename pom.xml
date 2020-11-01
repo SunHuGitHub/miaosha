@@ -60,6 +60,11 @@
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
         </dependency>
+        <dependency>
+            <groupId>joda-time</groupId>
+            <artifactId>joda-time</artifactId>
+            <version>2.10.5</version>
+        </dependency>
 <!--        校验依赖（hibernate-validator 与持久层框架 hibernate 没有什么关系，hibernate-validator 是 hibernate 组织下的一个开源项目 ）-->
         <dependency>
             <groupId>org.hibernate.validator</groupId>

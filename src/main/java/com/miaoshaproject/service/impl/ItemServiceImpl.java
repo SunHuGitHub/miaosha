@@ -7,7 +7,9 @@ import com.miaoshaproject.dataobject.ItemStockDO;
 import com.miaoshaproject.error.BusinessException;
 import com.miaoshaproject.error.EmBusinessError;
 import com.miaoshaproject.service.ItemService;
+import com.miaoshaproject.service.PromoService;
 import com.miaoshaproject.service.model.ItemModel;
+import com.miaoshaproject.service.model.PromoModel;
 import com.miaoshaproject.validator.ValidationResult;
 import com.miaoshaproject.validator.ValidatorImpl;
 import org.springframework.beans.BeanUtils;
@@ -31,6 +33,9 @@ public class ItemServiceImpl implements ItemService {
     ItemDOMapper itemDOMapper;
     @Autowired
     ItemStockDOMapper itemStockDOMapper;
+
+    @Autowired
+    PromoService promoService;
 
     @Override
     @Transactional(rollbackFor = BusinessException.class)
@@ -95,6 +100,11 @@ public class ItemServiceImpl implements ItemService {
         }
         ItemStockDO itemStockDO = itemStockDOMapper.selectByItemId(itemDO.getId());
         ItemModel itemModel = convertModelFromDataObject(itemDO, itemStockDO);
+
+        PromoModel promo = promoService.getPromoByItemId(itemModel.getId());
+        if (null != promo && 3 != promo.getStatus().intValue()) {
+            itemModel.setPromoModel(promo);
+        }
         return itemModel;
     }
 
@@ -108,12 +118,21 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public boolean decreaseStock(Integer itemId, Integer amount) throws BusinessException {
-        return false;
+        int affectedRow = itemStockDOMapper.decreaseStock(itemId, amount);
+        if (affectedRow > 0) {
+            //更新库存成功
+            return true;
+        } else {
+            //更新库存失败
+            return false;
+        }
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void increaseSales(Integer itemId, Integer amount) throws BusinessException {
-
+        itemDOMapper.increaseSales(itemId, amount);
     }
 }
