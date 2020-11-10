@@ -7,10 +7,9 @@ import com.miaoshaproject.error.EmBusinessError;
 import com.miaoshaproject.response.CommonReturnType;
 import com.miaoshaproject.service.UserService;
 import com.miaoshaproject.service.model.UserModel;
-import org.apache.tomcat.util.security.MD5Encoder;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import sun.misc.BASE64Encoder;
@@ -19,8 +18,9 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.HashMap;
 import java.util.Random;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Tiger
@@ -36,6 +36,9 @@ public class UserController extends BaseController {
 
     @Autowired
     private HttpServletRequest httpServletRequest;
+
+    @Autowired
+    private RedisTemplate redisTemplate;
 
     /**
      * 用户获取otp短信接口
@@ -163,10 +166,15 @@ public class UserController extends BaseController {
         //用户登陆服务,用来校验用户登陆是否合法
         UserModel userModel = userService.validateLogin(telphone, this.EncodeByMd5(password));
         //将登陆凭证加入到用户登陆成功的session内
-        this.httpServletRequest.getSession().setAttribute("IS_LOGIN", true);
-        this.httpServletRequest.getSession().setAttribute("LOGIN_USER", userModel);
+//        this.httpServletRequest.getSession().setAttribute("IS_LOGIN", true);
+//        this.httpServletRequest.getSession().setAttribute("LOGIN_USER", userModel);
 
-        return CommonReturnType.create(null);
+        String uuidToken = UUID.randomUUID().toString();
+        uuidToken = uuidToken.replaceAll("-","");
+        redisTemplate.opsForValue().set(uuidToken, userModel);
+        redisTemplate.expire(uuidToken, 1, TimeUnit.HOURS);
+
+        return CommonReturnType.create(uuidToken);
     }
 
 }

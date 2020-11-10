@@ -60,15 +60,26 @@
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
         </dependency>
+        <!--        时间工具类-->
         <dependency>
             <groupId>joda-time</groupId>
             <artifactId>joda-time</artifactId>
             <version>2.10.5</version>
         </dependency>
-<!--        校验依赖（hibernate-validator 与持久层框架 hibernate 没有什么关系，hibernate-validator 是 hibernate 组织下的一个开源项目 ）-->
+        <!--        校验依赖（hibernate-validator 与持久层框架 hibernate 没有什么关系，hibernate-validator 是 hibernate 组织下的一个开源项目 ）-->
         <dependency>
             <groupId>org.hibernate.validator</groupId>
             <artifactId>hibernate-validator</artifactId>
+        </dependency>
+        <!--        springboot对应的redis依赖-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
+        <!--        告诉spring对session的管理放入redis中-->
+        <dependency>
+            <groupId>org.springframework.session</groupId>
+            <artifactId>spring-session-data-redis</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
