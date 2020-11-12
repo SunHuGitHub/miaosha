@@ -3,6 +3,7 @@ package com.miaoshaproject.controller;
 import com.miaoshaproject.controller.viewobject.ItemVO;
 import com.miaoshaproject.error.BusinessException;
 import com.miaoshaproject.response.CommonReturnType;
+import com.miaoshaproject.service.CacheService;
 import com.miaoshaproject.service.ItemService;
 import com.miaoshaproject.service.model.ItemModel;
 import org.joda.time.format.DateTimeFormat;
@@ -32,6 +33,9 @@ public class ItemController extends BaseController {
 
     @Autowired
     private RedisTemplate redisTemplate;
+
+    @Autowired
+    private CacheService cacheService;
 
     /**
      * 创建商品
@@ -88,13 +92,21 @@ public class ItemController extends BaseController {
     @RequestMapping(value = "/get", method = {RequestMethod.GET})
     @ResponseBody
     public CommonReturnType getItem(@RequestParam(name = "id") Integer id) {
-        //从redis里获取
-        ItemModel itemModel = (ItemModel) redisTemplate.opsForValue().get("item_" + id);
+
+        ItemModel itemModel = null;
+
+        itemModel = (ItemModel) cacheService.getFromCommonCache("item_" + id);
 
         if (null == itemModel) {
-            itemModel = itemService.getItemById(id);
-            redisTemplate.opsForValue().set("item_" + id, itemModel, 10, TimeUnit.MINUTES);
+            //从redis里获取
+            itemModel = (ItemModel) redisTemplate.opsForValue().get("item_" + id);
+            if (null == itemModel) {
+                itemModel = itemService.getItemById(id);
+                redisTemplate.opsForValue().set("item_" + id, itemModel, 10, TimeUnit.MINUTES);
+            }
+            cacheService.setCommonCache("item_" + id, itemModel);
         }
+
         ItemVO itemVO = convertVOFromModel(itemModel);
 
         return CommonReturnType.create(itemVO);
